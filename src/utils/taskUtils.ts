@@ -10,7 +10,7 @@ import type {Task, TaskStats, CreateTaskParams, UpdateTaskParams } from '../type
  * @returns 統計情報
  */
 export const calculateTaskStats = (tasks: Task[]): TaskStats => {
-    const totalTasks = calculateTaskStats.length;
+    const totalTasks = tasks.length;
     const completedTasks = tasks.filter(t => t.completed).length;
     const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
