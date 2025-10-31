@@ -2,60 +2,40 @@
 // COMPONENT - タスクアイテム
 // ========================================
 
-import React, { useState } from 'react';
-import type { KeyboardEvent, ChangeEvent } from 'react';
-import { Trash2, Edit2, Check, X } from 'lucide-react';
-import type { Task, UpdateTaskParams } from '../../types/task';
+import React from 'react';
+import { Trash2, Edit2, Check, Calendar, Clock, Tag } from 'lucide-react';
+import type { Task } from '../../types/task';
+import { PRIORITIES, CATEGORIES } from '../../constants';
+import { formatDate, formatEstimatedTime, isOverdue } from '../../utils/taskUtils';
 
 interface TaskItemProps {
     task: Task;
     onToggleComplete: (id: string) => void;
-    onUpdate: (id: string, update: UpdateTaskParams) => void;
+    onEdit: (task: Task) => void;
     onDelete: (id: string) => void;
-};
+}
 
-const TaskItem: React.FC<TaskItemProps> = ({
-    task,
-    onToggleComplete,
-    onUpdate,
-    onDelete
+const TaskItem: React.FC<TaskItemProps> = ({ 
+    task, 
+    onToggleComplete, 
+    onEdit,
+    onDelete 
 }) => {
-    const [isEditing, setIsEditing] = useState<boolean>(false);
-    const [editTitle, setEditTitle] = useState<string>(task.title);
-
-    const handleSave = (): void => {
-        if (editTitle.trim() === '') return;
-        onUpdate(task.id, { title: editTitle });
-        setIsEditing(false);
-    };
-
-    const handleCancel = (): void => {
-        setEditTitle(task.title);
-        setIsEditing(false);
-    };
-
-    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
-        if (e.key === 'Enter') {
-            handleSave();
-        } else if (e.key === 'Escape') {
-            handleCancel();
-        }
-    };
-
-    const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
-        setEditTitle(e.target.value);
-    };
+    const priorityInfo = PRIORITIES.find(p => p.id === task.priority);
+    const categoryInfo = CATEGORIES.find(c => c.id === task.category);
+    const overdue = isOverdue(task.dueDate);
 
     return (
-        <div className={`bg-white rounded-lg shadow-md p-4 transition-all ${
+        <div
+            className={`bg-white rounded-lg shadow-md p-4 transition-all ${
                 task.completed ? 'opacity-60' : ''
-            }`}
+            } ${overdue && !task.completed ? 'border-l-4 border-red-500' : ''}`}
         >
-            <div className='flex items-center gap-3'>
+            <div className="flex items-start gap-3">
                 {/* チェックボックス */}
                 <button
                     onClick={() => onToggleComplete(task.id)}
-                    className={`flex-shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                    className={`flex-shrink-0 w-6 h-6 rounded border-2 flex items-center justify-center transition-colors mt-1 ${
                         task.completed
                         ? 'bg-green-500 border-green-500'
                         : 'border-gray-300 hover:border-green-400'
@@ -65,71 +45,100 @@ const TaskItem: React.FC<TaskItemProps> = ({
                     {task.completed && <Check size={16} className="text-white" />}
                 </button>
 
-                {/* タスクタイトル */}
-                {isEditing ? (
-                    <input
-                        type="text"
-                        value={editTitle}
-                        onChange={handleChange}
-                        onKeyDown={handleKeyDown}
-                        className="flex-1 px-3 py-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        autoFocus
-                    />
-                    ) : (
-                    <span
-                        className={`flex-1 text-gray-800 ${
-                        task.completed ? 'line-through text-gray-500' : ''
+                {/* タスク情報 */}
+                <div className="flex-1 min-w-0">
+                    {/* タイトル */}
+                    <h3
+                        className={`text-lg font-medium ${
+                        task.completed ? 'line-through text-gray-500' : 'text-gray-800'
                         }`}
                     >
                         {task.title}
-                    </span>
+                    </h3>
+
+                    {/* 説明 */}
+                    {task.description && (
+                        <p className="text-sm text-gray-600 mt-1">{task.description}</p>
                     )}
 
-                {/* アクションボタン */}
-                <div className="flex gap-2">
-                    {isEditing ? (
-                        <>
-                        <button
-                            onClick={handleSave}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
-                            title="保存"
-                            aria-label="保存"
-                        >
-                            <Check size={18} />
-                        </button>
-                        <button
-                            onClick={handleCancel}
-                            className="p-2 text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                            title="キャンセル"
-                            aria-label="キャンセル"
-                        >
-                            <X size={18} />
-                        </button>
-                        </>
-                    ) : (
-                        <>
-                            <button
-                                onClick={() => setIsEditing(true)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                title="編集"
-                                aria-label="編集"
-                            >
-                                <Edit2 size={18} />
-                            </button>
-                            <button
-                                onClick={() => onDelete(task.id)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                title="削除"
-                                aria-label="削除"
-                            >
-                                <Trash2 size={18} />
-                            </button>
-                        </>
+                    {/* メタ情報 */}
+                    <div className="flex flex-wrap gap-3 mt-2 text-sm">
+                        {/* 優先度 */}
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded ${
+                            priorityInfo?.id === 'high' ? 'bg-red-100 text-red-700' :
+                            priorityInfo?.id === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-green-100 text-green-700'
+                        }`}>
+                            {priorityInfo?.emoji} {priorityInfo?.label}
+                        </span>
+
+                        {/* カテゴリー */}
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded ${
+                            categoryInfo?.id === 'work' ? 'bg-blue-100 text-blue-700' :
+                            categoryInfo?.id === 'study' ? 'bg-purple-100 text-purple-700' :
+                            'bg-gray-100 text-gray-700'
+                        }`}>
+                            📁 {categoryInfo?.label}
+                        </span>
+
+                        {/* 期限 */}
+                        {task.dueDate && (
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded ${
+                                overdue ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                            }`}>
+                                <Calendar size={14} />
+                                {formatDate(task.dueDate)}
+                                {overdue && ' (期限切れ)'}
+                            </span>
+                        )}
+
+                        {/* 予想時間 */}
+                        {task.estimatedTime && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded">
+                                <Clock size={14} />
+                                {formatEstimatedTime(task.estimatedTime)}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* タグ */}
+                    {task.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {task.tags.map(tag => (
+                                <span
+                                    key={tag}
+                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs"
+                                >
+                                    <Tag size={12} />
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
                     )}
+                </div>
+
+                {/* アクションボタン */}
+                <div className="flex gap-2 flex-shrink-0">
+                    <button
+                        onClick={() => onEdit(task)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        title="編集"
+                        aria-label="編集"
+                    >
+                        <Edit2 size={18} />
+                    </button>
+                    <button
+                        onClick={() => onDelete(task.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="削除"
+                        aria-label="削除"
+                    >
+                        <Trash2 size={18} />
+                    </button>
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default TaskItem;
