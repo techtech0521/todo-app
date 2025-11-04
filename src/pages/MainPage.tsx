@@ -2,12 +2,13 @@
 // PAGE - メインページ
 // ========================================
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Header from '../components/Header/Header';
 import TaskInput from '../components/Task/TaskInput';
 import TaskList from '../components/Task/TaskList';
 import TaskModal from '../components/Task/TaskModal';
-import type { Task, CreateTaskParams, UpdateTaskParams } from '../types/task';
+import FilterBar from '../components/Filter/FilterBar';
+import type { Task, CreateTaskParams, UpdateTaskParams, FilterOptions, SortOption } from '../types/task';
 import {
   createTask,
   toggleTaskComplete,
@@ -15,12 +16,37 @@ import {
   deleteTask,
   calculateTaskStats
 } from '../utils/taskUtils';
+import { filterAndSortTasks } from '../utils/filterUtils';
 
 const MainPage: React.FC = () => {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+
+    // フィルター・ソート状態
+    const [filters, setFilters] = useState<FilterOptions>({
+        category: 'all',
+        priority: 'all',
+        completed: 'all',
+        searchQuery: '',
+        tags: []
+    });
+    const [sortBy, setSortBy] = useState<SortOption>('custom');
+
+
+    // フィルター・ソート適用済みタスク
+    const filteredAndSortedTasks = useMemo(() => {
+        const result = filterAndSortTasks(tasks, filters, sortBy);
+  
+        // デバッグ用ログ
+        console.log('全タスク数:', tasks.length);
+        console.log('フィルター条件:', filters);
+        console.log('ソート条件:', sortBy);
+        console.log('フィルター後のタスク数:', result.length);
+        return filterAndSortTasks(tasks, filters, sortBy);
+    }, [tasks, filters, sortBy]);
+
 
     // タスク追加
     const handleAddTask = (params: CreateTaskParams): void => {
@@ -109,6 +135,21 @@ const MainPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* フィルターバー */}
+                <FilterBar
+                    filters={filters}
+                    sortBy={sortBy}
+                    onFilterChange={setFilters}
+                    onSortChange={setSortBy}
+                />
+
+                {/* フィルター結果の表示 */}
+                {filteredAndSortedTasks.length !== tasks.length && (
+                    <div className="mb-4 text-sm text-gray-600">
+                        {tasks.length}件中 {filteredAndSortedTasks.length}件を表示
+                    </div>
+                )}
 
                 <TaskList
                     tasks={tasks}
