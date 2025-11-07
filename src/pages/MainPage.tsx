@@ -37,13 +37,6 @@ const MainPage: React.FC = () => {
 
     // フィルター・ソート適用済みタスク
     const filteredAndSortedTasks = useMemo(() => {
-        const result = filterAndSortTasks(tasks, filters, sortBy);
-  
-        // デバッグ用ログ
-        console.log('全タスク数:', tasks.length);
-        console.log('フィルター条件:', filters);
-        console.log('ソート条件:', sortBy);
-        console.log('フィルター後のタスク数:', result.length);
         return filterAndSortTasks(tasks, filters, sortBy);
     }, [tasks, filters, sortBy]);
 
@@ -152,7 +145,7 @@ const MainPage: React.FC = () => {
                 )}
 
                 <TaskList
-                    tasks={tasks}
+                    tasks={filteredAndSortedTasks}
                     onToggleComplete={handleToggleComplete}
                     onEdit={handleOpenEditModal}
                     onDelete={handleDeleteTask}
