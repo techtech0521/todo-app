@@ -52,6 +52,11 @@ const MainPage: React.FC = () => {
         setTasks(prevTasks => toggleTaskComplete(prevTasks, id));
     };
 
+    // タスクの並び替え
+    const handleReorderTasks = (reorderedTasks: Task[]): void => {
+        setTasks(reorderedTasks);
+    };
+
     // タスク更新
     const handleUpdateTask = (params: UpdateTaskParams): void => {
         if (!editingTask) return;
@@ -149,6 +154,7 @@ const MainPage: React.FC = () => {
                     onToggleComplete={handleToggleComplete}
                     onEdit={handleOpenEditModal}
                     onDelete={handleDeleteTask}
+                    onReorder={handleReorderTasks}
                 />
 
                 {/* タスクモーダル */}

@@ -2,7 +2,7 @@
 // COMPONENT - タスクリスト
 // ========================================
 
-import React from 'react';
+import React , { useState } from 'react';
 import TaskItem from './TaskItem';
 import type { Task } from '../../types/task';
 
@@ -11,14 +11,52 @@ interface TaskListProps {
     onToggleComplete: (id: string) => void;
     onEdit: (task: Task) => void;
     onDelete: (id: string) => void;
+    onReorder: (reorderedTasks: Task[]) => void;
 };
 
 const TaskList: React.FC<TaskListProps> = ({
     tasks,
     onToggleComplete,
     onEdit,
-    onDelete
+    onDelete,
+    onReorder
 }) => {
+    const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+    const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null);
+    
+    const handleDragStart = (id: string) => {
+        setDraggedTaskId(id);
+    };
+
+    const handleDragOver = (id: string) => {
+        if (draggedTaskId && draggedTaskId !== id) {
+            setDragOverTaskId(id);
+      
+            // タスクの順序を入れ替え
+            const draggedIndex = tasks.findIndex(t => t.id === draggedTaskId);
+            const targetIndex = tasks.findIndex(t => t.id === id);
+            
+            if (draggedIndex !== -1 && targetIndex !== -1) {
+                const newTasks = [...tasks];
+                const [draggedTask] = newTasks.splice(draggedIndex, 1);
+                newTasks.splice(targetIndex, 0, draggedTask);
+                
+                // order プロパティを更新
+                const reorderedTasks = newTasks.map((task, index) => ({
+                    ...task,
+                    order: Date.now() + index
+                }));
+        
+                onReorder(reorderedTasks);
+            }
+        }
+    };
+
+    const handleDragEnd = () => {
+        setDraggedTaskId(null);
+        setDragOverTaskId(null);
+    };
+
     if (tasks.length === 0) {
         return (
             <div className='bg-white rounded-lg shadow-md p-12 text-center'>
@@ -39,6 +77,10 @@ const TaskList: React.FC<TaskListProps> = ({
                     onToggleComplete={onToggleComplete}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    onDragStart={handleDragStart}
+                    onDragOver={handleDragOver}
+                    onDragEnd={handleDragEnd}
+                    isDragging={task.id === draggedTaskId}
                 />
             ))}
         </div>

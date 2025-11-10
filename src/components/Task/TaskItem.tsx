@@ -2,8 +2,8 @@
 // COMPONENT - タスクアイテム
 // ========================================
 
-import React from 'react';
-import { Trash2, Edit2, Check, Calendar, Clock, Tag } from 'lucide-react';
+import React, { useState } from 'react';
+import { Trash2, Edit2, Check, Calendar, Clock, Tag, GripVertical } from 'lucide-react';
 import type { Task } from '../../types/task';
 import { PRIORITIES, CATEGORIES } from '../../constants';
 import { formatDate, formatEstimatedTime, isOverdue } from '../../utils/taskUtils';
@@ -13,25 +13,70 @@ interface TaskItemProps {
     onToggleComplete: (id: string) => void;
     onEdit: (task: Task) => void;
     onDelete: (id: string) => void;
+    onDragStart?: (id: string) => void;
+    onDragOver?: (id: string) => void;
+    onDragEnd?: () => void;
+    isDragging?: boolean;
 }
 
 const TaskItem: React.FC<TaskItemProps> = ({ 
     task, 
     onToggleComplete, 
     onEdit,
-    onDelete 
+    onDelete,
+    onDragStart,
+    onDragOver,
+    onDragEnd,
+    isDragging = false 
 }) => {
+    const [isHovering, setIsHovering] = useState(false);
+
     const priorityInfo = PRIORITIES.find(p => p.id === task.priority);
     const categoryInfo = CATEGORIES.find(c => c.id === task.category);
     const overdue = isOverdue(task.dueDate);
 
+    const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+        if (onDragStart) {
+            onDragStart(task.id);
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (onDragOver) {
+            onDragOver(task.id);
+        }
+    };
+
+    const handleDragEnd = () => {
+        if (onDragEnd) {
+            onDragEnd();
+        }
+    };
+
     return (
         <div
-            className={`bg-white rounded-lg shadow-md p-4 transition-all ${
+            draggable
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            className={`bg-white rounded-lg shadow-md p-4 transition-all cursor-move ${
                 task.completed ? 'opacity-60' : ''
-            } ${overdue && !task.completed ? 'border-l-4 border-red-500' : ''}`}
+            } ${overdue && !task.completed ? 'border-l-4 border-red-500' : ''} ${
+                isDragging ? 'opacity-30 scale-95' : ''
+            } hover:shadow-lg`}
         >
             <div className="flex items-start gap-3">
+                {/* ドラッグハンドル */}
+                <div className={`flex-shrink-0 mt-1 transition-opacity ${isHovering ? 'opacity-100' : 'opacity-30'}`}>
+                    <GripVertical size={20} className="text-gray-400" />
+                </div>
+
                 {/* チェックボックス */}
                 <button
                     onClick={() => onToggleComplete(task.id)}
