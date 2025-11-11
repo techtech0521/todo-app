@@ -11,7 +11,7 @@ interface TaskListProps {
     onToggleComplete: (id: string) => void;
     onEdit: (task: Task) => void;
     onDelete: (id: string) => void;
-    onReorder: (reorderedTasks: Task[]) => void;
+    onReorder: (draggedId: string, targetId: string) => void;
 };
 
 const TaskList: React.FC<TaskListProps> = ({
@@ -31,25 +31,14 @@ const TaskList: React.FC<TaskListProps> = ({
     const handleDragOver = (id: string) => {
         if (draggedTaskId && draggedTaskId !== id) {
             setDragOverTaskId(id);
-      
-            // タスクの順序を入れ替え
-            const draggedIndex = tasks.findIndex(t => t.id === draggedTaskId);
-            const targetIndex = tasks.findIndex(t => t.id === id);
-            
-            if (draggedIndex !== -1 && targetIndex !== -1) {
-                const newTasks = [...tasks];
-                const [draggedTask] = newTasks.splice(draggedIndex, 1);
-                newTasks.splice(targetIndex, 0, draggedTask);
-                
-                // order プロパティを更新
-                const reorderedTasks = newTasks.map((task, index) => ({
-                    ...task,
-                    order: Date.now() + index
-                }));
-        
-                onReorder(reorderedTasks);
-            }
         }
+    };
+
+    const handleDrop = (targetId: string) => {
+        if (draggedTaskId && draggedTaskId !== targetId) {
+            onReorder(draggedTaskId, targetId);
+        }
+        handleDragEnd();
     };
 
     const handleDragEnd = () => {
@@ -80,6 +69,7 @@ const TaskList: React.FC<TaskListProps> = ({
                     onDragStart={handleDragStart}
                     onDragOver={handleDragOver}
                     onDragEnd={handleDragEnd}
+                    onDrop={handleDrop}
                     isDragging={task.id === draggedTaskId}
                 />
             ))}

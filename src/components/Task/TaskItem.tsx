@@ -16,6 +16,7 @@ interface TaskItemProps {
     onDragStart?: (id: string) => void;
     onDragOver?: (id: string) => void;
     onDragEnd?: () => void;
+    onDrop?: (id: string) => void;
     isDragging?: boolean;
 }
 
@@ -27,6 +28,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
     onDragStart,
     onDragOver,
     onDragEnd,
+    onDrop,
     isDragging = false 
 }) => {
     const [isHovering, setIsHovering] = useState(false);
@@ -57,12 +59,20 @@ const TaskItem: React.FC<TaskItemProps> = ({
         }
     };
 
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        if (onDrop) {
+            onDrop(task.id);
+        }
+    };
+
     return (
         <div
             draggable
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
+            onDrop={handleDrop}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
             className={`bg-white rounded-lg shadow-md p-4 transition-all cursor-move ${

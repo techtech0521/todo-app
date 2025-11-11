@@ -53,7 +53,23 @@ const MainPage: React.FC = () => {
     };
 
     // タスクの並び替え
-    const handleReorderTasks = (reorderedTasks: Task[]): void => {
+    const handleReorderTasks = (draggedId: string, targetId: string): void => {
+        // 元の tasks 配列全体から並び替える
+        const draggedIndex = tasks.findIndex(t => t.id === draggedId);
+        const targetIndex = tasks.findIndex(t => t.id === targetId);
+        
+        if (draggedIndex === -1 || targetIndex === -1) return;
+        
+        const newTasks = [...tasks];
+        const [draggedTask] = newTasks.splice(draggedIndex, 1);
+        newTasks.splice(targetIndex, 0, draggedTask);
+        
+        // order プロパティを更新
+        const reorderedTasks = newTasks.map((task, index) => ({
+            ...task,
+            order: Date.now() + index
+        }));
+        
         setTasks(reorderedTasks);
     };
 
