@@ -27,6 +27,8 @@ export interface Task {
     tags: string[];
     createdAt: string; // ISO 8601形式の日時文字列
     order: number;
+    completedAt: string | null;
+    emotion: Emotion | null;
 }
 
 /**
@@ -82,3 +84,34 @@ export interface FilterOptions {
  * ソートオプションの型
  */
 export type SortOption = 'priority' | 'dueDate' | 'createdAt' | 'custom';
+
+/**
+ * ユーザーの型定義（ゲーミフィケーション用）
+ */
+export interface User {
+    level: number;
+    exp: number;
+    streak: number;   // 現在の連続達成日数
+    maxStreak: number; // 最高連続達成日数
+    lastCompletedDate: string | null; // 最後にタスクを完了した日（YYYY-MM-DD）
+    totalCompleted: number; // 累計完了タスク数
+}
+
+/**
+ * タスク完了時の報酬情報
+ */
+export interface TaskReward {
+    baseExp: number;
+    bonusExp: number;
+    totalExp: number;
+    bonusReasons: string[];
+    levelUp?: boolean;
+    newLevel: number;
+    streakIncreased?: boolean;
+    newStreak?: number;
+}
+
+/**
+ * 感情の型
+ */
+export type Emotion = '😊' | '😎' | '💪' | '😴' | '😤' | '🤔' | '🎉' | '😌';
