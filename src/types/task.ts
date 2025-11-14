@@ -91,10 +91,10 @@ export type SortOption = 'priority' | 'dueDate' | 'createdAt' | 'custom';
 export interface User {
     level: number;
     exp: number;
-    streak: number;   // 現在の連続達成日数
-    maxStreak: number; // 最高連続達成日数
-    lastCompletedDate: string | null; // 最後にタスクを完了した日（YYYY-MM-DD）
-    totalCompleted: number; // 累計完了タスク数
+    streak: number;              // 現在の連続達成日数
+    maxStreak: number;            // 最高連続達成日数
+    lastCompletedDate: string | null;  // 最後にタスクを完了した日（YYYY-MM-DD）
+    totalCompleted: number;       // 累計完了タスク数
 }
 
 /**
@@ -105,9 +105,9 @@ export interface TaskReward {
     bonusExp: number;
     totalExp: number;
     bonusReasons: string[];
-    levelUp?: boolean;
-    newLevel: number;
-    streakIncreased?: boolean;
+    leveledUp: boolean;
+    newLevel?: number;
+    streakIncreased: boolean;
     newStreak?: number;
 }
 
