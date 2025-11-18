@@ -58,6 +58,8 @@ export const createTask = (params: CreateTaskParams): Task => {
         tags: params.tags || [],
         createdAt: now,
         order: Date.now(),
+        completedAt: null,
+        emotion: null
     };
 };
 

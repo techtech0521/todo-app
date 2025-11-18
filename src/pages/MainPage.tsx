@@ -8,7 +8,9 @@ import TaskInput from '../components/Task/TaskInput';
 import TaskList from '../components/Task/TaskList';
 import TaskModal from '../components/Task/TaskModal';
 import FilterBar from '../components/Filter/FilterBar';
-import type { Task, CreateTaskParams, UpdateTaskParams, FilterOptions, SortOption } from '../types/task';
+import UserInfoCard from '../components/User/UserInfoCard';
+import CompletionModal from '../components/Task/CompletionModal';
+import type { Task, CreateTaskParams, UpdateTaskParams, FilterOptions, SortOption, User, TaskReward, Emotion } from '../types/task';
 import {
   createTask,
   toggleTaskComplete,
@@ -17,12 +19,28 @@ import {
   calculateTaskStats
 } from '../utils/taskUtils';
 import { filterAndSortTasks } from '../utils/filterUtils';
+import { completeTask } from '../utils/gamificationUtils';
 
 const MainPage: React.FC = () => {
+    // ユーザー状態（ゲーミフィケーション）
+    const [user, setUser] = useState<User>({
+        level: 1,
+        exp: 0,
+        streak: 0,
+        maxStreak: 0,
+        lastCompletedDate: null,
+        totalCompleted: 0
+    });
+
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+
+    // 完了モーダル用の状態
+    const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
+    const [currentReward, setCurrentReward] = useState<TaskReward | null>(null);
+    const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
 
     // フィルター・ソート状態
     const [filters, setFilters] = useState<FilterOptions>({
@@ -45,11 +63,6 @@ const MainPage: React.FC = () => {
     const handleAddTask = (params: CreateTaskParams): void => {
         const newTask = createTask(params);
         setTasks(prevTasks => [...prevTasks, newTask]);
-    };
-
-    // 完了切り替え
-    const handleToggleComplete = (id: string): void => {
-        setTasks(prevTasks => toggleTaskComplete(prevTasks, id));
     };
 
     // タスクの並び替え
@@ -114,6 +127,48 @@ const MainPage: React.FC = () => {
         }
     };
 
+    // 完了切り替え
+    const handleToggleComplete = (id: string): void => {
+        const task = tasks.find(t => t.id === id);
+        if (!task) return;
+
+        // 未完了 → 完了の場合
+        if (!task.completed) {
+            // ゲーミフィケーション処理
+            const { user: updatedUser, reward } = completeTask(user, task);
+
+            // タスクを完了状態に更新
+            setTasks(prevTasks => prevTasks.map(t => 
+                t.id === id
+                    ? { ...t, completed: true, completedAt: new Date().toISOString() }
+                    : t
+            ));
+
+            // ユーザー情報を更新
+            setUser(updatedUser);
+
+            // 完了モーダルを表示
+            setCurrentReward(reward);
+            setCompletingTaskId(id);
+            setIsCompletionModalOpen(true);
+        } else {
+            // 完了 → 未完了の場合（経験値は減らさない）
+            setTasks(prevTasks => toggleTaskComplete(prevTasks, id));
+        }
+    };
+
+    // 感情を記録
+    const handleEmotionSelect = (emotion: Emotion): void => {
+        if (completingTaskId) {
+            setTasks(prevTasks => prevTasks.map(t =>
+                t.id === completingTaskId
+                ? { ...t, emotion }
+                : t
+            ));
+            setCompletingTaskId(null);
+        }
+    }
+
     // 統計情報
     const stats = calculateTaskStats(tasks);
 
@@ -121,6 +176,9 @@ const MainPage: React.FC = () => {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
             <div className="max-w-4xl mx-auto p-6">
                 <Header />
+
+                {/* ユーザー情報カード */}
+                <UserInfoCard user={user} />
 
                 <TaskInput onOpenModal={handleOpenCreateModal} />
 
@@ -181,6 +239,16 @@ const MainPage: React.FC = () => {
                     task={editingTask}
                     mode={modalMode}
                 />
+
+                {/* 完了モーダル */}
+                {currentReward && (
+                    <CompletionModal
+                        isOpen={isCompletionModalOpen}
+                        onClose={() => setIsCompletionModalOpen(false)}
+                        reward={currentReward}
+                        onEmotionSelect={handleEmotionSelect}
+                    />
+                )}
             </div>
         </div>
     );
