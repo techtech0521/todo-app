@@ -21,7 +21,11 @@ import {
 import { filterAndSortTasks } from '../utils/filterUtils';
 import { completeTask } from '../utils/gamificationUtils';
 
-const MainPage: React.FC = () => {
+interface MainPageProps {
+    onNavigateToStats: () => void;
+}
+
+const MainPage: React.FC<MainPageProps> = ({ onNavigateToStats }) => {
     // ユーザー状態（ゲーミフィケーション）
     const [user, setUser] = useState<User>({
         level: 1,
@@ -175,7 +179,10 @@ const MainPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
             <div className="max-w-4xl mx-auto p-6">
-                <Header />
+                <Header 
+                    onNavigateToStats={onNavigateToStats} 
+                    showStatsButton={true} 
+                />
 
                 {/* ユーザー情報カード */}
                 <UserInfoCard user={user} />
