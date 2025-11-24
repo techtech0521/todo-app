@@ -22,21 +22,20 @@ import { filterAndSortTasks } from '../utils/filterUtils';
 import { completeTask } from '../utils/gamificationUtils';
 
 interface MainPageProps {
+    tasks: Task[];
+    setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+    user: User;
+    setUser: React.Dispatch<React.SetStateAction<User>>;
     onNavigateToStats: () => void;
 }
 
-const MainPage: React.FC<MainPageProps> = ({ onNavigateToStats }) => {
-    // ユーザー状態（ゲーミフィケーション）
-    const [user, setUser] = useState<User>({
-        level: 1,
-        exp: 0,
-        streak: 0,
-        maxStreak: 0,
-        lastCompletedDate: null,
-        totalCompleted: 0
-    });
-
-    const [tasks, setTasks] = useState<Task[]>([]);
+const MainPage: React.FC<MainPageProps> = ({ 
+    tasks,
+    setTasks,
+    user,
+    setUser,
+    onNavigateToStats 
+}) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
