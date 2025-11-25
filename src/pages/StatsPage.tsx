@@ -2,24 +2,91 @@
 // PAGE - 統計ページ
 // ========================================
 
-import React from 'react';
-import { ArrowLeft, Trophy, TrendingUp, Target, Heart } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { ArrowLeft, Trophy, TrendingUp, Target, Heart, Clock } from 'lucide-react';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import type { Task, User } from '../types/task';
+import {
+    getCategoryStats,
+    getPriorityStats,
+    getEmotionStats,
+    getWeeklyCompletionData,
+    getAverageTime
+} from '../utils/statsUtils';
+import { calculateTaskStats } from '../utils/taskUtils';
 
 interface StatsPageProps {
+    tasks: Task[];
+    user: User;
     onNavigateToMain: () => void;
 }
 
-const StatsPage: React.FC<StatsPageProps> = ({ onNavigateToMain }) => {
-    const tasks: Task[] = [];
-    const user: User = {
-        level: 1,
-        exp: 0,
-        streak: 0,
-        maxStreak: 0,
-        lastCompletedDate: null,
-        totalCompleted: 0
-    };
+const StatsPage: React.FC<StatsPageProps> = ({ tasks, user, onNavigateToMain }) => {
+    // 統計データを計算
+    const stats = useMemo(() => calculateTaskStats(tasks), [tasks]);
+    const categoryData = useMemo(() => getCategoryStats(tasks), [tasks]);
+    const priorityData = useMemo(() => getPriorityStats(tasks), [tasks]);
+    const emotionData = useMemo(() => getEmotionStats(tasks), [tasks]);
+    const weeklyData = useMemo(() => getWeeklyCompletionData(tasks), [tasks]);
+    const averageTime = useMemo(() => getAverageTime(tasks), [tasks]);
+
+    // 実績バッジの判定
+    const achievements = [
+        { 
+            id: 'first_complete', 
+            name: '初めての完了', 
+            icon: '🎉', 
+            unlocked: user.totalCompleted >= 1 
+        },
+        { 
+            id: 'complete_10', 
+            name: '10タスク達成', 
+            icon: '⭐', 
+            unlocked: user.totalCompleted >= 10 
+        },
+        { 
+            id: 'complete_50', 
+            name: '50タスク達成', 
+            icon: '🌟', 
+            unlocked: user.totalCompleted >= 50 
+        },
+        { 
+            id: 'complete_100', 
+            name: '100タスク達成', 
+            icon: '💯', 
+            unlocked: user.totalCompleted >= 100 
+        },
+        { 
+            id: 'streak_3', 
+            name: '3日連続', 
+            icon: '🔥', 
+            unlocked: user.maxStreak >= 3 
+        },
+        { 
+            id: 'streak_7', 
+            name: '1週間連続', 
+            icon: '🚀', 
+            unlocked: user.maxStreak >= 7 
+        },
+        { 
+            id: 'streak_30', 
+            name: '1ヶ月連続', 
+            icon: '👑', 
+            unlocked: user.maxStreak >= 30 
+        },
+        { 
+            id: 'level_5', 
+            name: 'レベル5到達', 
+            icon: '🎖️', 
+            unlocked: user.level >= 5 
+        },
+        { 
+            id: 'level_10', 
+            name: 'レベル10到達', 
+            icon: '🏆', 
+            unlocked: user.level >= 10 
+        },
+    ];
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -47,6 +114,7 @@ const StatsPage: React.FC<StatsPageProps> = ({ onNavigateToMain }) => {
                             <Target className="text-blue-500" size={20} />
                         </div>
                         <div className="text-3xl font-bold text-gray-800">{tasks.length}</div>
+                        <p className="text-xs text-gray-500 mt-1">完了: {stats.completedTasks}</p>
                     </div>
 
                     <div className="bg-white rounded-lg shadow-md p-6">
@@ -55,6 +123,9 @@ const StatsPage: React.FC<StatsPageProps> = ({ onNavigateToMain }) => {
                             <TrendingUp className="text-green-500" size={20} />
                         </div>
                         <div className="text-3xl font-bold text-green-600">0%</div>
+                        <p className="text-xs text-gray-500 mt-1">
+                            {stats.activeTasks}件 進行中
+                        </p>
                     </div>
 
                     <div className="bg-white rounded-lg shadow-md p-6">
@@ -63,6 +134,7 @@ const StatsPage: React.FC<StatsPageProps> = ({ onNavigateToMain }) => {
                             <Trophy className="text-yellow-500" size={20} />
                         </div>
                         <div className="text-3xl font-bold text-purple-600">{user.level}</div>
+                        <p className="text-xs text-gray-500 mt-1">EXP: {user.exp}</p>
                     </div>
 
                     <div className="bg-white rounded-lg shadow-md p-6">
@@ -71,7 +143,31 @@ const StatsPage: React.FC<StatsPageProps> = ({ onNavigateToMain }) => {
                             <Heart className="text-red-500" size={20} />
                         </div>
                         <div className="text-3xl font-bold text-orange-600">{user.maxStreak}日</div>
+                        <p className="text-xs text-gray-500 mt-1">
+                            現在: {user.streak}日
+                        </p>
                     </div>
+                </div>
+
+                {/* 週次完了グラフ */}
+                <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 className="text-xl font-bold text-gray-800 mb-4">
+                        📈 週次完了タスク数
+                    </h2>
+                    {weeklyData.some(d => d.completed > 0) ? (
+                        <ResponsiveContainer width="100%" height={250}>
+                            <BarChart data={weeklyData}>
+                                <XAxis dataKey="week" />
+                                <YAxis />
+                                <Tooltip />
+                                <Bar dataKey="completed" fill="#3B82F6" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-64 flex items-center justify-center text-gray-400">
+                            まだデータがありません。タスクを完了して統計を確認しましょう！
+                        </div>
+                    )}
                 </div>
 
                 {/* グラフエリア（次のステップで実装） */}
