@@ -3,15 +3,14 @@
 // ========================================
 
 import React, { useMemo } from 'react';
-import { ArrowLeft, Trophy, TrendingUp, Target, Heart, Clock } from 'lucide-react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { ArrowLeft, Trophy, TrendingUp, Target, Heart } from 'lucide-react';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import type { Task, User } from '../types/task';
 import {
     getCategoryStats,
     getPriorityStats,
     getEmotionStats,
     getWeeklyCompletionData,
-    getAverageTime
 } from '../utils/statsUtils';
 import { calculateTaskStats } from '../utils/taskUtils';
 
@@ -28,7 +27,6 @@ const StatsPage: React.FC<StatsPageProps> = ({ tasks, user, onNavigateToMain }) 
     const priorityData = useMemo(() => getPriorityStats(tasks), [tasks]);
     const emotionData = useMemo(() => getEmotionStats(tasks), [tasks]);
     const weeklyData = useMemo(() => getWeeklyCompletionData(tasks), [tasks]);
-    const averageTime = useMemo(() => getAverageTime(tasks), [tasks]);
 
     // 実績バッジの判定
     const achievements = [
@@ -122,7 +120,7 @@ const StatsPage: React.FC<StatsPageProps> = ({ tasks, user, onNavigateToMain }) 
                             <span className="text-gray-600 text-sm">完了率</span>
                             <TrendingUp className="text-green-500" size={20} />
                         </div>
-                        <div className="text-3xl font-bold text-green-600">0%</div>
+                        <div className="text-3xl font-bold text-green-600">{stats.completionRate}%</div>
                         <p className="text-xs text-gray-500 mt-1">
                             {stats.activeTasks}件 進行中
                         </p>
@@ -170,24 +168,76 @@ const StatsPage: React.FC<StatsPageProps> = ({ tasks, user, onNavigateToMain }) 
                     )}
                 </div>
 
-                {/* グラフエリア（次のステップで実装） */}
+                {/* グラフエリア */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    {/* カテゴリー別円グラフ */}
                     <div className="bg-white rounded-lg shadow-md p-6">
                         <h2 className="text-xl font-bold text-gray-800 mb-4">
-                            カテゴリー別タスク
+                            📁 カテゴリー別タスク
                         </h2>
-                        <div className="h-64 flex items-center justify-center text-gray-400">
-                            グラフを準備中...
-                        </div>
+                        {categoryData.some(d => d.value > 0) ? (
+                            <ResponsiveContainer width="100%" height={250}>
+                                <PieChart>
+                                    <Pie
+                                        data={categoryData}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={({ name, percent }) => {
+                                            if (percent === undefined || percent === 0) return '';
+                                            return `${name}: ${(percent * 100).toFixed(0)}%`;
+                                        }}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                    >
+                                        {categoryData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="h-64 flex items-center justify-center text-gray-400">
+                                データなし
+                            </div>
+                        )}
                     </div>
 
+                    {/* 優先度別円グラフ */}
                     <div className="bg-white rounded-lg shadow-md p-6">
                         <h2 className="text-xl font-bold text-gray-800 mb-4">
-                            優先度別タスク
+                            ⚡ 優先度別タスク
                         </h2>
-                        <div className="h-64 flex items-center justify-center text-gray-400">
-                            グラフを準備中...
-                        </div>
+                        {priorityData.some(d => d.value > 0) ? (
+                            <ResponsiveContainer width="100%" height={250}>
+                                <PieChart>
+                                    <Pie
+                                        data={priorityData}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={({ name, percent }) => {
+                                            if (percent === undefined || percent === 0) return '';
+                                            return `${name}: ${(percent * 100).toFixed(0)}%`;
+                                        }}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                    >
+                                        {priorityData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="h-64 flex items-center justify-center text-gray-400">
+                                データなし
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -196,9 +246,23 @@ const StatsPage: React.FC<StatsPageProps> = ({ tasks, user, onNavigateToMain }) 
                     <h2 className="text-xl font-bold text-gray-800 mb-4">
                         😊 感情記録
                     </h2>
-                    <div className="h-32 flex items-center justify-center text-gray-400">
-                        データを準備中...
-                    </div>
+                    {emotionData.length > 0 ? (
+                        <div className="flex flex-wrap gap-4">
+                            {emotionData.map(({ emotion, count }) => (
+                                <div key={emotion} className="flex items-center gap-2 bg-gray-50 px-4 py-3 rounded-lg">
+                                    <span className="text-3xl">{emotion}</span>
+                                    <div>
+                                        <p className="text-2xl font-bold text-gray-800">{count}</p>
+                                        <p className="text-xs text-gray-500">回</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="h-32 flex items-center justify-center text-gray-400">
+                            タスク完了時に感情を記録すると、ここに表示されます
+                        </div>
+                    )}
                 </div>
 
                 {/* 実績バッジエリア */}
@@ -206,8 +270,20 @@ const StatsPage: React.FC<StatsPageProps> = ({ tasks, user, onNavigateToMain }) 
                     <h2 className="text-xl font-bold text-gray-800 mb-4">
                         🏆 実績バッジ
                     </h2>
-                    <div className="h-32 flex items-center justify-center text-gray-400">
-                        実績を準備中...
+                    <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-4">
+                        {achievements.map(achievement => (
+                            <div
+                                key={achievement.id}
+                                className={`text-center p-4 rounded-lg transition-all ${
+                                    achievement.unlocked
+                                        ? 'bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-300'
+                                        : 'bg-gray-100 opacity-40'
+                                }`}
+                            >
+                                <div className="text-4xl mb-2">{achievement.icon}</div>
+                                <p className="text-xs font-medium text-gray-700">{achievement.name}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>

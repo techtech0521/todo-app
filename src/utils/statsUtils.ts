@@ -94,14 +94,3 @@ export const getWeeklyCompletionData = (tasks: Task[]) => {
 
     return data;
 };
-
-/**
- * 平均完了時間を計算（予想時間が設定されているタスクのみ）
- */
-export const getAverageTime = (tasks: Task[]): number => {
-    const tasksWithTime = tasks.filter(t => t.estimatedTime !== null && t.estimatedTime > 0);
-    if (tasksWithTime.length === 0) return 0;
-
-    const totalTime = tasksWithTime.reduce((sum, task) => sum + (task.estimatedTime || 0), 0);
-    return Math.round(totalTime / tasksWithTime.length);
-};
