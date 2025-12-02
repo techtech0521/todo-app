@@ -6,14 +6,15 @@ import React, { useState } from 'react';
 import MainPage from './pages/MainPage';
 import StatsPage from './pages/StatsPage';
 import type { Task, User } from './types/task';
+import { usePersistedState } from './hooks/usePersistedState';
 
 type Page = 'main' | 'stats';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('main');
 
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [user, setUser] = useState<User>({  
+  const [tasks, setTasks] = usePersistedState<Task[]>('gamitask-tasks', []);
+  const [user, setUser] = usePersistedState<User>('gamitask-user', {  
     level: 1,
     exp: 0,
     streak: 0,
