@@ -3,7 +3,6 @@
 // ========================================
 
 import React, { useState, useMemo } from 'react';
-import Header from '../components/Header/Header';
 import TaskInput from '../components/Task/TaskInput';
 import TaskList from '../components/Task/TaskList';
 import TaskModal from '../components/Task/TaskModal';
@@ -15,11 +14,11 @@ import {
   createTask,
   toggleTaskComplete,
   updateTask,
-  deleteTask,
-  calculateTaskStats
+  deleteTask
 } from '../utils/taskUtils';
 import { filterAndSortTasks } from '../utils/filterUtils';
 import { completeTask } from '../utils/gamificationUtils';
+import { BarChart3 } from 'lucide-react';
 
 interface MainPageProps {
     tasks: Task[];
@@ -66,27 +65,6 @@ const MainPage: React.FC<MainPageProps> = ({
     const handleAddTask = (params: CreateTaskParams): void => {
         const newTask = createTask(params);
         setTasks(prevTasks => [...prevTasks, newTask]);
-    };
-
-    // タスクの並び替え
-    const handleReorderTasks = (draggedId: string, targetId: string): void => {
-        // 元の tasks 配列全体から並び替える
-        const draggedIndex = tasks.findIndex(t => t.id === draggedId);
-        const targetIndex = tasks.findIndex(t => t.id === targetId);
-        
-        if (draggedIndex === -1 || targetIndex === -1) return;
-        
-        const newTasks = [...tasks];
-        const [draggedTask] = newTasks.splice(draggedIndex, 1);
-        newTasks.splice(targetIndex, 0, draggedTask);
-        
-        // order プロパティを更新
-        const reorderedTasks = newTasks.map((task, index) => ({
-            ...task,
-            order: Date.now() + index
-        }));
-        
-        setTasks(reorderedTasks);
     };
 
     // タスク更新
@@ -172,47 +150,32 @@ const MainPage: React.FC<MainPageProps> = ({
         }
     }
 
-    // 統計情報
-    const stats = calculateTaskStats(tasks);
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-            <div className="max-w-4xl mx-auto p-6">
-                <Header 
-                    onNavigateToStats={onNavigateToStats} 
-                    showStatsButton={true} 
-                />
+            <div className="max-w-7xl mx-auto p-46">
+                {/* ヘッダー */}
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-800 mb-1">
+                            🎮 GamiTask
+                        </h1>
+                        <p className="text-sm text-gray-600">あなたのタスクを楽しく管理</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                        <TaskInput onOpenModal={handleOpenCreateModal} />
+                        <button
+                            onClick={onNavigateToStats}
+                            className="px-4 py-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-all text-purple-600 font-medium flex items-center gap-2"
+                        >
+                            <BarChart3 size={20} />
+                            統計
+                        </button>
+                    </div>
+                </div>
 
                 {/* ユーザー情報カード */}
                 <UserInfoCard user={user} />
-
-                <TaskInput onOpenModal={handleOpenCreateModal} />
-
-                {/* 統計情報 */}
-                <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-                        <div className="text-center">
-                            <div className="text-gray-600">全タスク</div>
-                            <div className="text-2xl font-bold text-gray-800">{stats.totalTasks}</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-gray-600">完了</div>
-                            <div className="text-2xl font-bold text-green-600">{stats.completedTasks}</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-gray-600">達成率</div>
-                            <div className="text-2xl font-bold text-blue-600">{stats.completionRate}%</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-gray-600">高優先度</div>
-                            <div className="text-2xl font-bold text-red-600">{stats.byPriority.high}</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-gray-600">仕事</div>
-                            <div className="text-2xl font-bold text-blue-600">{stats.byCategory.work}</div>
-                        </div>
-                    </div>
-                </div>
 
                 {/* フィルターバー */}
                 <FilterBar
@@ -224,18 +187,23 @@ const MainPage: React.FC<MainPageProps> = ({
 
                 {/* フィルター結果の表示 */}
                 {filteredAndSortedTasks.length !== tasks.length && (
-                    <div className="mb-4 text-sm text-gray-600">
+                    <div className="mb-3 text-sm text-gray-600">
                         {tasks.length}件中 {filteredAndSortedTasks.length}件を表示
                     </div>
                 )}
 
-                <TaskList
-                    tasks={filteredAndSortedTasks}
-                    onToggleComplete={handleToggleComplete}
-                    onEdit={handleOpenEditModal}
-                    onDelete={handleDeleteTask}
-                    onReorder={handleReorderTasks}
-                />
+                {/* タスクリスト（グリッド表示） */}
+                <div 
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                    style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '4px' }}
+                >
+                    <TaskList
+                        tasks={filteredAndSortedTasks}
+                        onToggleComplete={handleToggleComplete}
+                        onEdit={handleOpenEditModal}
+                        onDelete={handleDeleteTask}
+                    />
+                </div>
 
                 {/* タスクモーダル */}
                 <TaskModal

@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { Plus } from 'lucide-react';
-import Button from '../common/Button';
 
 interface TaskInputProps {
     onOpenModal: () => void;
@@ -12,20 +11,13 @@ interface TaskInputProps {
 
 const TaskInput: React.FC<TaskInputProps> = ({ onOpenModal }) => {
     return (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div className="flex gap-2">
-                <button
-                    onClick={onOpenModal}
-                    className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-left text-gray-400 hover:border-blue-400 hover:text-blue-400 transition-colors"
-                >
-                    新しいタスクを追加...
-                </button>
-                <Button onClick={onOpenModal} variant="primary">
-                    <Plus size={20} />
-                    追加
-                </Button>
-            </div>
-        </div>
+        <button
+            onClick={onOpenModal}
+            className='px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 font-medium shadow-md hover:shadow-lg'
+        >
+            <Plus size={20} />
+            新しいタスク
+        </button>
     );
 };
 
