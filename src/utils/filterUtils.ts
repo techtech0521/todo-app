@@ -98,3 +98,14 @@ export const filterAndSortTasks = (
     const filtered = filterTasks(tasks, filters);
     return sortTasks(filtered, sortBy);
 };
+
+/**
+ * 完了タスクを下に移動
+ * @param task - タスクの配列
+ * @returns 並び替えられたタスクの配列
+ */
+export const moveCompletedToBottom = (tasks: Task[]): Task[] => {
+    const activeTasks = tasks.filter(t => !t.completed);
+    const completedTasks  = tasks.filter(t => t.completed);
+    return [...activeTasks, ...completedTasks];
+}

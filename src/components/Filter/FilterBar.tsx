@@ -53,8 +53,26 @@ const FilterBar: React.FC<FilterBarProps> = ({
         onSortChange(e.target.value as SortOption);
     };
 
+    //フィルターが適用されているかチェック
+    const isFilterActive = 
+        filters.category !== 'all' || 
+        filters.priority !== 'all' || 
+        filters.completed !== 'all' || 
+        filters.searchQuery !== '';
+
     return (
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div className={`rounded-lg shadow-md p-4 mb-6 transition-colors ${
+            isFilterActive 
+                ? 'bg-blue-50 border-2 border-blue-300' 
+                : 'bg-white'
+        }`}>
+            {/* アクティブフィルターバッジ */}
+            {isFilterActive && (
+                <div className="mb-3 flex items-center gap-2">
+                    <Filter className="text-blue-600" size={16} />
+                    <span className="text-sm font-medium text-blue-700">フィルター適用中</span>
+                </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
                 {/* 検索 */}
                 <div className="lg:col-span-2">

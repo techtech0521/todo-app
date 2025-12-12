@@ -3,7 +3,7 @@
 // ========================================
 
 import React from 'react';
-import { Trash2, Edit2, Check, Calendar, Clock } from 'lucide-react';
+import { Trash2, Edit2, Check, Calendar, Clock, AlertCircle } from 'lucide-react';
 import type { Task } from '../../types/task';
 import { PRIORITIES, CATEGORIES } from '../../constants';
 import { formatDate, formatEstimatedTime, isOverdue } from '../../utils/taskUtils';
@@ -27,9 +27,9 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
     return (
         <div
-            className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-all p-4 h-full flex flex-col ${
-                task.completed ? 'opacity-60' : ''
-            } ${overdue && !task.completed ? 'border-l-4 border-red-500' : ''}`}
+            className={`rounded-lg shadow-md hover:shadow-lg transition-all p-4 flex flex-col h-52 ${
+                task.completed ? 'opacity-70' : ''
+            } ${overdue && !task.completed ? 'bg-red-50 border-2 border-red-300' : 'bg-white'}`}
         >
             {/* ヘッダー（チェックボックスとアクション） */}
             <div className="flex items-start justify-between mb-3">
@@ -66,18 +66,22 @@ const TaskItem: React.FC<TaskItemProps> = ({
             </div>
 
             {/* タイトルと感情 */}
-            <div className="flex-1 mb-3">
+            <div className="mb-3">
                 <h3
-                    className={`text-base font-medium mb-2 line-clamp-2 ${
+                    className={`text-base font-medium truncate ${
                         task.completed ? 'line-through text-gray-500' : 'text-gray-800'
                     }`}
                     title={task.title}
                 >
                     {task.title}
-                    {task.completed && task.emotion && (
-                        <span className="ml-2 text-xl">{task.emotion}</span>
-                    )}
                 </h3>
+
+                {/* 感情記録（独立した行） */}
+                {task.completed && task.emotion && (
+                    <div className="mt-2 flex items-center">
+                        <span className="text-3xl">{task.emotion}</span>
+                    </div>
+                )}
 
                 {/* 説明（1行のみ） */}
                 {task.description && (
@@ -87,8 +91,16 @@ const TaskItem: React.FC<TaskItemProps> = ({
                 )}
             </div>
 
+            {/* 期限切れアラート */}
+            { overdue && !task.completed && (
+                <div className="mb-3 flex items-center gap-1 text-red-600 text-xs font-medium bg-red-100 px-2 py-1 rounded">
+                    <AlertCircle size={12} />
+                    期限切れ
+                </div>
+            )}
+
             {/* メタ情報 */}
-            <div className="space-y-2">
+            <div className="flex-grow space-y-2">
                 {/* 優先度とカテゴリー */}
                 <div className="flex gap-2">
                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
@@ -129,16 +141,16 @@ const TaskItem: React.FC<TaskItemProps> = ({
                 {/* タグ */}
                 {task.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                        {task.tags.slice(0, 3).map(tag => (
+                        {task.tags.slice(0, 2).map(tag => (
                             <span
                                 key={tag}
-                                className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs"
+                                className="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs truncate max-w-[80px]"
                             >
                                 #{tag}
                             </span>
                         ))}
-                        {task.tags.length > 3 && (
-                            <span className="text-xs text-gray-500">+{task.tags.length - 3}</span>
+                        {task.tags.length > 2 && (
+                            <span className="text-xs text-gray-500">+{task.tags.length - 2}</span>
                         )}
                     </div>
                 )}

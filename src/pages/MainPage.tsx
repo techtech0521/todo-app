@@ -16,7 +16,7 @@ import {
   updateTask,
   deleteTask
 } from '../utils/taskUtils';
-import { filterAndSortTasks } from '../utils/filterUtils';
+import { filterAndSortTasks, moveCompletedToBottom } from '../utils/filterUtils';
 import { completeTask } from '../utils/gamificationUtils';
 import { BarChart3 } from 'lucide-react';
 
@@ -57,7 +57,8 @@ const MainPage: React.FC<MainPageProps> = ({
 
     // フィルター・ソート適用済みタスク
     const filteredAndSortedTasks = useMemo(() => {
-        return filterAndSortTasks(tasks, filters, sortBy);
+        const filtered =  filterAndSortTasks(tasks, filters, sortBy);
+        return moveCompletedToBottom(filtered);
     }, [tasks, filters, sortBy]);
 
 
