@@ -2,7 +2,7 @@
 // UTILS - タスク関連のユーティリティ関数
 // ========================================
 
-import type {Task, TaskStats, CreateTaskParams, UpdateTaskParams, Priority, Category } from '../types/task';
+import type {Task, TaskStats, CreateTaskParams, UpdateTaskParams, Priority } from '../types/task';
 
 /**
  * タスクの統計情報を計算
@@ -61,18 +61,6 @@ export const createTask = (params: CreateTaskParams): Task => {
         completedAt: null,
         emotion: null
     };
-};
-
-/**
- * タスクの完了状態をトグル
- * @param tasks - タスクの配列
- * @param id - 対象タスクのID
- * @returns 更新されたタスクの配列
- */
-export const toggleTaskComplete = (tasks: Task[], id: string): Task[] => {
-    return tasks.map(task => 
-        task.id === id ? { ...task, completed: !task.completed } : task
-    );
 };
 
 /**

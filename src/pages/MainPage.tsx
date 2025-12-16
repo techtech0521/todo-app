@@ -12,13 +12,13 @@ import CompletionModal from '../components/Task/CompletionModal';
 import type { Task, CreateTaskParams, UpdateTaskParams, FilterOptions, SortOption, User, TaskReward, Emotion } from '../types/task';
 import {
   createTask,
-  toggleTaskComplete,
   updateTask,
   deleteTask
 } from '../utils/taskUtils';
 import { filterAndSortTasks, moveCompletedToBottom } from '../utils/filterUtils';
 import { completeTask } from '../utils/gamificationUtils';
 import { BarChart3 } from 'lucide-react';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 
 interface MainPageProps {
     tasks: Task[];
@@ -43,6 +43,10 @@ const MainPage: React.FC<MainPageProps> = ({
     const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
     const [currentReward, setCurrentReward] = useState<TaskReward | null>(null);
     const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
+
+    // 確認ダイアログ用の状態
+    const [isUncompleteDialogOpen, setIsUncompleteDialogOpen] = useState(false);
+    const [taskToUncomplete, setTaskToUncomplete] = useState<string | null>(null);
 
     // フィルター・ソート状態
     const [filters, setFilters] = useState<FilterOptions>({
@@ -114,30 +118,43 @@ const MainPage: React.FC<MainPageProps> = ({
         const task = tasks.find(t => t.id === id);
         if (!task) return;
 
-        // 未完了 → 完了の場合
-        if (!task.completed) {
-            // ゲーミフィケーション処理
-            const { user: updatedUser, reward } = completeTask(user, task);
-
-            // タスクを完了状態に更新
-            setTasks(prevTasks => prevTasks.map(t => 
-                t.id === id
-                    ? { ...t, completed: true, completedAt: new Date().toISOString() }
-                    : t
-            ));
-
-            // ユーザー情報を更新
-            setUser(updatedUser);
-
-            // 完了モーダルを表示
-            setCurrentReward(reward);
-            setCompletingTaskId(id);
-            setIsCompletionModalOpen(true);
-        } else {
-            // 完了 → 未完了の場合（経験値は減らさない）
-            setTasks(prevTasks => toggleTaskComplete(prevTasks, id));
+        // 完了 → 未完了の場合（確認ダイアログを表示）
+        if (task.completed) {
+            setTaskToUncomplete(id);
+            setIsUncompleteDialogOpen(true);
+            return;
         }
+
+        // 未完了 → 完了の場合
+        const { user: updatedUser, reward } = completeTask(user, task);
+
+        setTasks(prevTasks => prevTasks.map(t => 
+            t.id === id
+                ? { ...t, completed: true, completedAt: new Date().toISOString() }
+                : t
+        ));
+
+        // ユーザー情報を更新
+        setUser(updatedUser);
+
+        // 完了モーダルを表示
+        setCurrentReward(reward);
+        setCompletingTaskId(id);
+        setIsCompletionModalOpen(true);
     };
+
+    // 未完了に戻す処理（確認後）
+    const handleConfirmUncomplete = (): void => {
+        if(!taskToUncomplete) return;
+
+        setTasks(prevTasks => prevTasks.map(t => 
+            t.id === taskToUncomplete
+                ? { ...t, completed: false, completedAt: null, emotion: null }
+                : t
+        ));
+
+        setTaskToUncomplete(null);
+    }
 
     // 感情を記録
     const handleEmotionSelect = (emotion: Emotion): void => {
@@ -224,6 +241,21 @@ const MainPage: React.FC<MainPageProps> = ({
                         onEmotionSelect={handleEmotionSelect}
                     />
                 )}
+
+                {/* 未完了確認ダイアログ */}
+                <ConfirmDialog
+                    isOpen={isUncompleteDialogOpen}
+                    onClose={() => {
+                        setIsUncompleteDialogOpen(false);
+                        setTaskToUncomplete(null);
+                    }}
+                    onConfirm={handleConfirmUncomplete}
+                    title="確認"
+                    message="このタスクを未完了に戻しますか？"
+                    warningMessage="獲得した経験値は戻りません"
+                    confirmText="未完了に戻す"
+                    cancelText="キャンセル"
+                    />
             </div>
         </div>
     );
