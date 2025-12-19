@@ -48,6 +48,10 @@ const MainPage: React.FC<MainPageProps> = ({
     const [isUncompleteDialogOpen, setIsUncompleteDialogOpen] = useState(false);
     const [taskToUncomplete, setTaskToUncomplete] = useState<string | null>(null);
 
+    // 削除確認ダイアログ用の状態
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+
     // フィルター・ソート状態
     const [filters, setFilters] = useState<FilterOptions>({
         category: 'all',
@@ -81,7 +85,15 @@ const MainPage: React.FC<MainPageProps> = ({
 
     // タスク削除
     const handleDeleteTask = (id: string): void => {
-        setTasks(prevTasks => deleteTask(prevTasks, id));
+        setTaskToDelete(id);
+        setIsDeleteDialogOpen(true);
+    };
+
+    // タスク削除の実行（確認後）
+    const handleConfirmDelete = (): void => {
+        if (!taskToDelete) return;
+        setTasks(prevTasks => deleteTask(prevTasks, taskToDelete));
+        setTaskToDelete(null);
     };
 
     // モーダルを開く（新規作成）
@@ -255,7 +267,22 @@ const MainPage: React.FC<MainPageProps> = ({
                     warningMessage="獲得した経験値は戻りません"
                     confirmText="未完了に戻す"
                     cancelText="キャンセル"
-                    />
+                />
+
+                {/* 削除確認ダイアログ */}
+                <ConfirmDialog 
+                    isOpen={isDeleteDialogOpen}
+                    onClose={() => {
+                        setIsDeleteDialogOpen(false);
+                        setTaskToDelete(null);
+                    }}
+                    onConfirm={handleConfirmDelete}
+                    title="タスクを削除"
+                    message="このタスクを削除しますか？"
+                    warningMessage="この操作は取り消せません"
+                    confirmText="削除"
+                    cancelText="キャンセル"
+                />
             </div>
         </div>
     );
