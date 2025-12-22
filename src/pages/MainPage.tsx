@@ -17,8 +17,9 @@ import {
 } from '../utils/taskUtils';
 import { filterAndSortTasks, moveCompletedToBottom } from '../utils/filterUtils';
 import { completeTask } from '../utils/gamificationUtils';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, Settings } from 'lucide-react';
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import SettingsModal from '../components/Settings/SettingsModal';
 
 interface MainPageProps {
     tasks: Task[];
@@ -51,6 +52,10 @@ const MainPage: React.FC<MainPageProps> = ({
     // 削除確認ダイアログ用の状態
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+
+    // 設定モーダル用の状態
+    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
     // フィルター・ソート状態
     const [filters, setFilters] = useState<FilterOptions>({
@@ -180,6 +185,21 @@ const MainPage: React.FC<MainPageProps> = ({
         }
     }
 
+    // データリセット処理
+    const handleResetData = (): void => {
+        setIsSettingsModalOpen(false);
+        setIsResetConfirmOpen(true);
+    };
+
+    const handleConfirmReset = (): void => {
+        // localStorageのデータを削除
+        localStorage.removeItem('gamitask-tasks');
+        localStorage.removeItem('gamitask-user');
+
+        // ページをリロード
+        window.location.reload();
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
             <div className="max-w-7xl mx-auto p-46">
@@ -200,6 +220,13 @@ const MainPage: React.FC<MainPageProps> = ({
                         >
                             <BarChart3 size={20} />
                             統計
+                        </button>
+                        <button
+                            onClick={() => setIsSettingsModalOpen(true)}
+                            className="px-4 py-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-all text-gray-600 font-medium flex items-center gap-2"
+                        >
+                            <Settings size={20} />
+                            設定
                         </button>
                     </div>
                 </div>
@@ -281,6 +308,25 @@ const MainPage: React.FC<MainPageProps> = ({
                     message="このタスクを削除しますか？"
                     warningMessage="この操作は取り消せません"
                     confirmText="削除"
+                    cancelText="キャンセル"
+                />
+
+                {/* 設定モーダル */}
+                <SettingsModal
+                    isOpen={isSettingsModalOpen}
+                    onClose={() => setIsSettingsModalOpen(false)}
+                    onResetData={handleResetData}
+                />
+
+                {/* データリセット確認ダイアログ */}
+                <ConfirmDialog
+                    isOpen={isResetConfirmOpen}
+                    onClose={() => setIsResetConfirmOpen(false)}
+                    onConfirm={handleConfirmReset}
+                    title="全データをリセット"
+                    message="本当に全てのデータを削除しますか？"
+                    warningMessage="全てのタスク、レベル、経験値、ストリークが永久に失われます。この操作は取り消せません。"
+                    confirmText="リセットする"
                     cancelText="キャンセル"
                 />
             </div>
