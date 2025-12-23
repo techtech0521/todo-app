@@ -14,22 +14,13 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
-    // ESCキーでモーダルを閉じる
     useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                onClose();
-            }
-        };
-
         if (isOpen) {
-            document.addEventListener('keydown', handleEscape);
             // スクロールを無効化
             document.body.style.overflow = 'hidden';
         }
 
         return () => {
-            document.removeEventListener('keydown', handleEscape);
             document.body.style.overflow = 'unset';
         };
     }, [isOpen, onClose]);
@@ -41,7 +32,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
       {/* オーバーレイ */}
       <div
         className="absolute inset-0 bg-black/50 transition-opacity"
-        onClick={onClose}
       />
 
       {/* モーダルコンテンツ */}
