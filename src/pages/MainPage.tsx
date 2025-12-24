@@ -20,6 +20,7 @@ import { completeTask } from '../utils/gamificationUtils';
 import { BarChart3, Settings } from 'lucide-react';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import SettingsModal from '../components/Settings/SettingsModal';
+import EmptyState from '../components/EmptyState/EmptyState';
 
 interface MainPageProps {
     tasks: Task[];
@@ -250,17 +251,23 @@ const MainPage: React.FC<MainPageProps> = ({
                 )}
 
                 {/* タスクリスト（グリッド表示） */}
-                <div 
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                    style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '4px' }}
-                >
-                    <TaskList
-                        tasks={filteredAndSortedTasks}
-                        onToggleComplete={handleToggleComplete}
-                        onEdit={handleOpenEditModal}
-                        onDelete={handleDeleteTask}
-                    />
-                </div>
+                {tasks.length === 0 ? (
+                    <div className="mt-8">
+                        <EmptyState onCreateTask={handleOpenCreateModal} />
+                    </div>
+                ) : (
+                    <div 
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                        style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '4px' }}
+                    >
+                        <TaskList
+                            tasks={filteredAndSortedTasks}
+                            onToggleComplete={handleToggleComplete}
+                            onEdit={handleOpenEditModal}
+                            onDelete={handleDeleteTask}
+                        />
+                    </div>  
+                )}
 
                 {/* タスクモーダル */}
                 <TaskModal
