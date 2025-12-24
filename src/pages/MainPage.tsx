@@ -203,9 +203,9 @@ const MainPage: React.FC<MainPageProps> = ({
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-            <div className="max-w-7xl mx-auto p-46">
+            <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
                 {/* ヘッダー */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-800 mb-1">
                             🎮 GamiTask
@@ -213,8 +213,10 @@ const MainPage: React.FC<MainPageProps> = ({
                         <p className="text-sm text-gray-600">あなたのタスクを楽しく管理</p>
                     </div>
                     
-                    <div className="flex items-center gap-3">
-                        <TaskInput onOpenModal={handleOpenCreateModal} />
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="w-full sm:w-auto">
+                            <TaskInput onOpenModal={handleOpenCreateModal} />
+                        </div>
                         <button
                             onClick={onNavigateToStats}
                             className="px-4 py-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-all text-purple-600 font-medium flex items-center gap-2"
@@ -256,10 +258,7 @@ const MainPage: React.FC<MainPageProps> = ({
                         <EmptyState onCreateTask={handleOpenCreateModal} />
                     </div>
                 ) : (
-                    <div 
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                        style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '4px' }}
-                    >
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[60vh] md:max-h-[70vh] lg:max-h-[80vh] overflow-y-auto pr-1">
                         <TaskList
                             tasks={filteredAndSortedTasks}
                             onToggleComplete={handleToggleComplete}
